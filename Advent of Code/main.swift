@@ -14,26 +14,54 @@ func main() {
         .filter { !$0.isEmpty }
     
     // Sample algorithm
-    var scoreboard = [String: Int]()
+    var totalScore = 0
     lines.forEach { line in
-        let (name, score) = parseLine(line)
-        scoreboard[name] = score
+        let hands = parseLine(line)
+        let roundScore = playRound(opponent: hands.opponent, me: hands.me)
+        print(roundScore)
+        totalScore += roundScore
     }
-    scoreboard
-        .sorted { lhs, rhs in
-            lhs.value > rhs.value
-        }
-        .forEach { name, score in
-            print("\(name) \(score) pts")
-        }
+    print(totalScore)
 }
 
-func parseLine(_ line: String) -> (name: String, score: Int) {
-    let helper = RegexHelper(pattern: #"([\-\w]*)\s(\d+)"#)
-    let result = helper.parse(line)
-    let name = result[0]
-    let score = Int(result[1])!
-    return (name: name, score: score)
+func parseLine(_ line: String) -> (opponent: Hand, me: Hand) {
+    let result = line.components(separatedBy: .whitespaces)
+    return (Hand(rawValue: result[0])!, Hand(rawValue: result[1])!)
+}
+
+enum Hand: String {
+    case A
+    case B
+    case C
+    case X
+    case Y
+    case Z
+}
+
+func playRound(opponent: Hand, me: Hand) -> Int {
+    var score = 0
+    switch me {
+    case .X: score += 1
+    case .Y: score += 2
+    case .Z: score += 3
+    default: ()
+    }
+    
+    // draw
+    if (opponent == .A && me == .X) ||
+        (opponent == .B && me == .Y) ||
+        (opponent == .C && me == .Z) {
+        score += 3
+    }
+    
+    // win
+    if (opponent == .A && me == .Y) ||
+        (opponent == .B && me == .Z) ||
+        (opponent == .C && me == .X) {
+        score += 6
+    }
+    
+    return score
 }
 
 main()
